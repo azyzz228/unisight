@@ -1,0 +1,24 @@
+@font-face {
+    font-family: Muller;
+    src: url("./fonts/MullerBold.ttf") format("truetype");
+}
+@font-face {
+    font-family: Muller Regular;
+    src: url("./fonts/MullerRegular.ttf") format("truetype");
+}
+@font-face {
+    font-family: rf-bold;
+    src: url("./fonts/RFDewi-Bold.ttf") format("truetype");
+}
+@font-face {
+    font-family: rf-regular;
+    src: url("./fonts/RFDewi-Regular.ttf") format("truetype");
+}
+@font-face {
+    font-family: rf-semibold;
+    src: url("./fonts/RFDewi-Semibold.ttf") format("truetype");
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
