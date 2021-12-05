@@ -17,6 +17,7 @@ import profilephoto from '../images/profilephoto.png'
 import volume from '../images/volume.png'
 
 import AllowRecordingPopup from '../components/AllowRecordingPopup'
+import ResultsModel from '../components/ResultsModel';
 
 
 
@@ -28,6 +29,7 @@ function RealTimeAnalysisScreen() {
     const [isActive, setIsActive] = useState(false);
     const [heartBeat, setheartBeat] = useState()
     const [seconds2, setSeconds2] = useState()
+    const [showResults, setShowResults] = useState(false)
 
 
 
@@ -84,6 +86,8 @@ function RealTimeAnalysisScreen() {
     }
 
     const resetHandler = () => {
+        onStop();
+        setShowResults(true)
         reset();
         SpeechRecognition.stopListening();
     }
@@ -105,7 +109,10 @@ function RealTimeAnalysisScreen() {
 
     const affdex = window.affdex;
 
-
+    const [joy, setJoy] = useState([])
+    const [surprise, setSurprise] = useState([])
+    const [attention, setAttention] = useState([])
+    const [confusion, setConfusion] = useState([])
 
 
     const startDetector = () => {
@@ -114,12 +121,7 @@ function RealTimeAnalysisScreen() {
         setShowModal(false)
         console.log('Clicked');
         var divRoot = document.getElementById("video")
-        function onStop() {
-            if (detector && detector.isRunning) {
-                detector.removeEventListener();
-                detector.stop();
-            }
-        }
+
         console.log(divRoot);
         console.log('Clicked');
         var width = 650;
@@ -193,10 +195,7 @@ function RealTimeAnalysisScreen() {
 
 
             if (faces.length > 0) {
-                // log('#results', "Appearance: " + JSON.stringify(faces[0].appearance));
-                // log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, function(key, val) {
-                //   return val.toFixed ? Number(val.toFixed(0)) : val;
-                // }));
+
 
                 ind += 1;
                 confusion = 0;
@@ -332,9 +331,26 @@ function RealTimeAnalysisScreen() {
                 }
             }
         });
+        function onStop() {
+            if (detector && detector.isRunning) {
+                detector.removeEventListener();
+                detector.stop();
+            }
+
+            setJoy(joy_count)
+            setAttention(attene)
+            setConfusion(confusion)
+            setSurprise(surpe)
+
+
+        }
+
+
+
     }
     return (
         <div className="flex flex-row  justify-center h-screen relative">
+            {showResults && <ResultsModel joy={joy} attention={attention} confusion={confusion} surprise={surprise} />}
             {showModal && <AllowRecordingPopup onClick={startDetector} />}
 
 
@@ -383,7 +399,7 @@ function RealTimeAnalysisScreen() {
                 </div>
 
 
-                <div className={`flex flex-row items-center ml-24 transform scale-90 -mt-16 z-50 relative space-x-2 ${showModal ? 'opacity-0' : 'opacity-100'} `}>
+                <div className={`flex flex-row items-center ml-24 transform scale-90 -mt-16 z-20 relative space-x-2 ${showModal ? 'opacity-0' : 'opacity-100'} `}>
 
                     <div className="grid place-content-center px-4 py-2 rounded-lg bg-black">
                         <img src={volume} alt="" />
@@ -469,10 +485,10 @@ function RealTimeAnalysisScreen() {
 
                     <div className="flex flex-row items-center  px-4 bg-white text-gray-400 rounded-2xl h-20">
                         <div className="bg-white rounded-full">
-                            {focus === 0 ? <CircleProgress percentage={0} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
-                                :
-                                <CircleProgress percentage={66} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
-                            }
+
+                            <CircleProgress percentage={0} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
+
+
 
                         </div>
                         <p className="ml-2 flex-1" style={{ color: '#8a8a8e' }}>Interest</p>

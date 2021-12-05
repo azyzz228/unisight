@@ -5,6 +5,7 @@ import RealTimeAnalysisScreen from "./screens/RealTimeAnalysisScreen";
 import AllowRecordingPopup from "./components/AllowRecordingPopup";
 import EducatorDashboardScreen from "./screens/EducatorDashboardScreen";
 import Test from "./components/Test";
+import ResultsModel from "./components/ResultsModel";
 function App() {
   return (
     <Switch>
@@ -19,7 +20,7 @@ function App() {
 
       <Route path="/dashboard" exact> <EducatorDashboardScreen /> </Route>
 
-      <Route path="/test" exact> <Test /> </Route>
+      <Route path="/test" exact> <ResultsModel /> </Route>
 
 
     </Switch>
