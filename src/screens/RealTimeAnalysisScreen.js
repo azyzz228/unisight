@@ -1,16 +1,21 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import $ from 'jquery'
+import { CircleProgress } from 'react-gradient-progress'
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import Chart from "react-apexcharts";
+
+
 import SideMenuItem from '../components/SideMenuItem'
 import star from '../images/star.png'
+import logo from '../images/logo.png'
+import gif from '../images/hbz.gif'
+
 import notification from '../images/notification.png'
+import video from '../images/video.png'
 
 import profilephoto from '../images/profilephoto.png'
-import blurredbg from '../images/blurredbg.png'
-import zoom from '../images/zoom.png'
-import logopopup from '../images/logopopup.png'
-import arrowpopup from '../images/arrowpopup.png'
+import volume from '../images/volume.png'
 
-import { CircleProgress } from 'react-gradient-progress'
-import LogoutIcon from '../icons/LogoutIcon'
 import AllowRecordingPopup from '../components/AllowRecordingPopup'
 
 
@@ -19,19 +24,324 @@ function RealTimeAnalysisScreen() {
 
     const [showModal, setShowModal] = useState(true)
 
+    const [seconds, setSeconds] = useState(0);
+    const [isActive, setIsActive] = useState(false);
+    const [heartBeat, setheartBeat] = useState()
+    const [seconds2, setSeconds2] = useState()
+
+
+
+    var min = 59;
+    var max = 87;
+    var num = 0;
+
+    function display() {
+        num = Math.floor(Math.random() * (max - min + 1)) + min;
+        setheartBeat(num)
+        console.log(num);
+    }
+
+
+    useEffect(() => {
+        let interval2 = null;
+        if (isActive) {
+            interval2 = setInterval(() => {
+                setSeconds2((seconds2) => seconds2 + 1);
+                setheartBeat(Math.floor(Math.random() * (max - min + 1)) + min)
+            }, 3200);
+        } else if (!isActive && seconds !== 0) {
+            clearInterval(interval2);
+        }
+        return () => clearInterval(interval2);
+    }, [isActive, seconds2]);
+
+
+    function toggle() {
+        setIsActive(!isActive);
+    }
+    function reset() {
+
+        setIsActive(false);
+    }
+
+    useEffect(() => {
+        let interval = null;
+        if (isActive) {
+            interval = setInterval(() => {
+                setSeconds((seconds) => seconds + 1);
+            }, 1000);
+        } else if (!isActive && seconds !== 0) {
+            clearInterval(interval);
+        }
+        return () => clearInterval(interval);
+    }, [isActive, seconds]);
+
     const handleModal = () => {
         setShowModal(!showModal)
+        toggle();
+        SpeechRecognition.startListening({ continuous: true })
+
+    }
+
+    const resetHandler = () => {
+        reset();
+        SpeechRecognition.stopListening();
+    }
+
+    const {
+        transcript,
+        listening,
+        resetTranscript,
+        browserSupportsSpeechRecognition
+    } = useSpeechRecognition()
+
+
+    {/* ATTENTION = FOCUS */ }
+    const [focus, setFocus] = useState(0)
+    {/* ENJOYMENT = PARTICIPATION */ }
+    const [participation, setParticipation] = useState(0)
+    {/* CONFUSION = INTEREST */ }
+    const [interest, setInterest] = useState(0)
+
+    const affdex = window.affdex;
+
+
+
+
+    const startDetector = () => {
+        toggle();
+        SpeechRecognition.startListening({ continuous: true })
+        setShowModal(false)
+        console.log('Clicked');
+        var divRoot = document.getElementById("video")
+        function onStop() {
+            if (detector && detector.isRunning) {
+                detector.removeEventListener();
+                detector.stop();
+            }
+        }
+        console.log(divRoot);
+        console.log('Clicked');
+        var width = 650;
+        var height = 500;
+        var faceMode = affdex.FaceDetectorMode.LARGE_FACES;
+        //Construct a CameraDetector and specify the image width / height and face detector mode.
+        var detector = new affdex.CameraDetector(divRoot, width, height, faceMode);
+
+        //Enable detection of all Expressions, Emotions and Emojis classifiers.
+        detector.detectAllEmotions();
+        detector.detectAllExpressions();
+        detector.detectAllEmojis();
+        detector.detectAllAppearance();
+        //Add a callback to notify when the detector is initialized and ready for runing.
+        detector.addEventListener("onInitializeSuccess", function () {
+            //Display canvas instead of video feed because we want to draw the feature points on it
+            $("#face_video_canvas").css("display", "block");
+            $("#face_video").css("display", "none");
+        });
+
+        if (detector && !detector.isRunning) {
+            detector.start();
+        }
+
+        var joye = [];
+        var sade = [];
+        var feare = [];
+        var surpe = [];
+        var valene = [];
+        var attene = [];
+        var browe = [];
+        var framenum = [];
+        var confused_times = [];
+        var distracted_times = [];
+        var enjoy_times = [];
+
+        var ind = 0;
+
+        // Current consecutive fear/sadness levels
+        var fearF = 0;
+        var sadF = 0;
+
+
+        //Lower Attention
+        var low_att = 0;
+        //Hugely distracted-not looking
+        var distra = 0;
+
+
+        var less_att = 0;
+        var distracte = 0;
+
+        //confusion
+        var confusion = 0;
+        var lconf = 0;
+        var mconf = 0;
+        var hconf = 0;
+
+        //Misunderstanding
+        var brow = 0;
+        var browR = 0;
+        var jawDropped = 0;
+        var eyeWidened = 0;
+        //Sleeping
+        var eyeC = 0;
+
+
+        var joy_count = 0
+
+        detector.addEventListener("onImageResultsSuccess", function (faces, image, timestamp) {
+
+
+            if (faces.length > 0) {
+                // log('#results', "Appearance: " + JSON.stringify(faces[0].appearance));
+                // log('#results', "Emotions: " + JSON.stringify(faces[0].emotions, function(key, val) {
+                //   return val.toFixed ? Number(val.toFixed(0)) : val;
+                // }));
+
+                ind += 1;
+                confusion = 0;
+
+                //keeping track of student's brow furrow
+                if (faces[0].expressions['browFurrow'].toFixed(0) > 10) {
+                    brow += 1;
+                } else {
+                    brow = 0;
+                }
+                //if student has been confused for over 3 seconds display that!
+                // if (brow >= 30) {
+                //   log('#drlogs', "The student may be struggling to understand this part\n Please make sure to re-iterate this part");
+                // }
+                //Checking if this would represent confusion
+                if (faces[0].expressions['browFurrow'].toFixed(0) > confusion) {
+                    confusion = faces[0].expressions['browFurrow'].toFixed(0);
+                }
+
+
+                //keeping track of student's brow Raise
+                if (faces[0].expressions['browRaise'].toFixed(0) > 15) {
+                    browR += 1;
+                } else {
+                    browR = 0;
+                }
+                //if student has been confused for over 3 seconds display that!
+                // if (browR >= 30) {
+                //   log('#drlogs', "The student may be struggling to understand this part\n Please make sure to re-iterate this part");
+                // }
+                //Checking if this would represent confusion
+                if (faces[0].expressions['browRaise'].toFixed(0) > confusion) {
+                    confusion = faces[0].expressions['browRaise'].toFixed(0);
+                }
+
+
+                //keeping track of patient's jaw dropping
+                if (faces[0].expressions['jawDrop'].toFixed(0) > 30) {
+                    jawDropped += 1;
+                } else {
+                    jawDropped = 0;
+                }
+
+                if (jawDropped >= 60 || brow >= 60 || browR >= 60) {
+                    hconf += 1;
+
+                    setParticipation(33)
+                    confused_times.push(timestamp.toFixed(2));
+                } else if (jawDropped >= 20 || brow >= 20 || browR >= 20) {
+                    mconf += 1;
+                    setParticipation(66)
+                } else {
+                    lconf += 1;
+                    setParticipation(100)
+
+                }
+                //Checking if this would represent confusion
+                if (faces[0].expressions['jawDrop'].toFixed(0) > confusion) {
+                    confusion = faces[0].expressions['jawDrop'].toFixed(0);
+                }
+
+                if ((faces[0].expressions['attention'].toFixed(0) <= 90) && (faces[0].expressions['attention'].toFixed(0) > 60)) {
+                    less_att += 1;
+                }
+                if (faces[0].expressions['attention'].toFixed(0) <= 60) {
+                    distracte += 1;
+                }
+
+                //keeping track of joy
+                if (faces[0].emotions['joy'].toFixed(0) > 30) {
+                    joy_count += 1;
+                } else {
+                    joy_count = 0;
+                }
+
+                if (joy_count >= 20) {
+
+                    setParticipation(100)
+                    enjoy_times.push(timestamp.toFixed(2));
+                } else {
+                    setParticipation(66)
+
+                }
+
+                //keeping track of student Attention
+                if (faces[0].expressions['attention'].toFixed(0) <= 90) {
+                    low_att += 1;
+                } else {
+                    low_att = 0;
+                }
+
+                if (low_att >= 90) {
+
+                    setFocus(30)
+                    distracted_times.push(timestamp.toFixed(2));
+
+                } else if (low_att >= 30) {
+                    setFocus(72)
+
+                } else {
+                    setFocus(100)
+                }
+
+                //adding frame values to their respective arrays
+                browe.push(confusion);
+                attene.push(faces[0].expressions['attention'].toFixed(0));
+                framenum.push(timestamp.toFixed(2));
+                valene.push(faces[0].emotions['valence'].toFixed(0));
+                joye.push(faces[0].emotions['joy'].toFixed(0));
+                surpe.push(faces[0].emotions['surprise'].toFixed(0));
+
+
+                if ($('#face_video_canvas')[0] != null)
+                    drawFeaturePoints(image, faces[0].featurePoints);
+
+            }
+
+
+            function drawFeaturePoints(img, featurePoints) {
+                var contxt = $('#face_video_canvas')[0].getContext('2d');
+
+                var hRatio = contxt.canvas.width / img.width;
+                var vRatio = contxt.canvas.height / img.height;
+                var ratio = Math.min(hRatio, vRatio);
+
+                contxt.strokeStyle = "#38e2f5";
+                for (var id in featurePoints) {
+                    contxt.beginPath();
+                    contxt.arc(featurePoints[id].x,
+                        featurePoints[id].y, 2, 0, 2 * Math.PI);
+                    contxt.stroke();
+
+                }
+            }
+        });
     }
     return (
         <div className="flex flex-row  justify-center h-screen relative">
-            {showModal && <AllowRecordingPopup handleModal={handleModal} />}
+            {showModal && <AllowRecordingPopup onClick={startDetector} />}
 
 
             <div className="w-2/12 h-full bg-gray-50 font-muller">
 
                 <div className="flex flex-row items-center justify-center space-x-2 my-6">
-                    <div className="w-10 h-10 rounded-full bg-black"></div>
-                    <p className="font-bold">Brand name</p>
+                    <img src={logo} alt="" className="w-2/4 transform -translate-x-12" />
                 </div>
 
 
@@ -62,10 +372,43 @@ function RealTimeAnalysisScreen() {
 
 
 
-                <div className="bg-red-300  rounded-xl mt-4" id="affdex_elements"
-                    style={{ width: '830px', height: '400px' }}
+                <div className=" rounded-xl mt-4 overflow-hidden ml-28  relative " id="video"
+                    style={{ width: '640px', height: '490px' }}
                 >
-                    .
+
+                    <div className="px-8 py-4 w-10 h-10 top-10 absolute z-20 filter blur-md">
+                        <p>STOP</p>
+                    </div>
+
+                </div>
+
+
+                <div className={`flex flex-row items-center ml-24 transform scale-90 -mt-16 z-50 relative space-x-2 ${showModal ? 'opacity-0' : 'opacity-100'} `}>
+
+                    <div className="grid place-content-center px-4 py-2 rounded-lg bg-black">
+                        <img src={volume} alt="" />
+                    </div>
+
+
+                    <div className="grid place-content-center px-4 py-2 rounded-lg bg-black">
+                        <img src={video} alt="" />
+                    </div>
+
+                    <div className="flex flex-row space-x-3 items-center text-white font-rfsemibold px-4 py-4 rounded-lg bg-black">
+                        <div className={`w-2 h-2 bg-red-400 rounded-full  ${isActive ? 'animate-pulse' : 'animate-none'}`}></div>
+                        <p className="">Record</p>
+                        <p className="mr-2 font-mono">{seconds}</p>
+                    </div>
+
+                    <button className="grid place-content-center px-6 py-4 font-rfsemibold tracking-wide text-white rounded-lg bg-black" onClick={resetHandler}
+                    >
+                        End & Save
+                    </button>
+
+                    <div className="grid place-content-center px-6 py-4 font-rfsemibold tracking-wide text-white rounded-lg bg-black" >
+                        Reset
+                    </div>
+
                 </div>
 
                 <div className="px-8 bg-gray-50 flex flex-row items-baseline py-4 rounded-lg mt-6">
@@ -73,20 +416,22 @@ function RealTimeAnalysisScreen() {
                     <div className="flex flex-row items-center justify-center space-x-1 mr-6">
 
 
-                        <div className="w-1 h-4 rounded-full " style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
+                        <div className={`w-1 h-4 rounded-full ${listening ? 'animate-bounce' : 'animate-none'}`} style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
 
-                        <div className="w-1 h-6 rounded-full " style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
+                        <div className={`w-1 h-6 rounded-full ${listening ? 'animate-bounce' : 'animate-none'}`} style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
 
-                        <div className="w-1 h-2 rounded-full " style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
+                        <div className={`w-1 h-5 rounded-full ${listening ? 'animate-bounce' : 'animate-none'}`} style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
 
-                        <div className="w-1 h-5 rounded-full " style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
+                        <div className={`w-1 h-4 rounded-full ${listening ? 'animate-bounce' : 'animate-none'}`} style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
 
-                        <div className="w-1 h-6 rounded-full " style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
+                        <div className={`w-1 h-2 rounded-full ${listening ? 'animate-bounce' : 'animate-none'}`} style={{ backgroundColor: '#6e6eff', color: "#6e6eff" }}></div>
 
                     </div>
 
                     <p className="text-lg font-rfbold" style={{ color: "#6e6eff" }}>Transcript:</p>
-                    <p className="w-full px-6 font-rfbold text-center">Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita quaerat vero officiis. Placeat suscipit laboriosam tempora ipsa labore sequi, ullam in illo blanditiis similique dolor qui aperiam dolore vitae cumque reiciendis porro esse cupiditate voluptatum soluta repellat rerum adipisci consequuntur! Reiciendis quia numquam hic pariatur debitis, quae repudiandae maxime voluptate?</p>
+                    <p className="w-full px-6 font-rfbold text-center">
+                        {transcript}
+                    </p>
                 </div>
 
             </div>
@@ -97,7 +442,7 @@ function RealTimeAnalysisScreen() {
                 <div className="flex flex-row items-center justify-around px-3  mt-6">
                     <i class="fas fa-search text-lg" style={{ color: '#979797' }}></i>
                     <img src={notification} alt="" />
-                    <p className="text-xl font-muller font-thin">Your name</p>
+                    <p className="text-xl font-muller font-thin">Aziz</p>
                     <img src={profilephoto} alt="" />
 
                     <i class="bi bi-chevron-down" style={{ color: '#979797' }}></i>
@@ -107,7 +452,7 @@ function RealTimeAnalysisScreen() {
 
 
 
-                <div className={`px-4 py-6 bg-black font-rfregular flex flex-col space-y-6 rounded-xl mt-4  ${showModal ? 'opacity-0' : 'opacity-100'} `}>
+                <div className={`px-4 py-6 bg-black font-rfregular flex flex-col space-y-6 rounded-xl my-4  ${showModal ? 'opacity-0' : 'opacity-100'} `}>
                     <div className="flex flex-row text-white items-center text-lg">
                         <p>Class sentiment</p>
                         <i class="bi bi-exclamation-circle text-sm ml-2 -mb-1" style={{ color: '#9ea9b4' }}></i>
@@ -115,40 +460,53 @@ function RealTimeAnalysisScreen() {
 
                     <div className="flex flex-row items-center  px-4 bg-white text-gray-400 rounded-2xl h-20">
                         <div className="bg-white rounded-full">
-                            <CircleProgress percentage={32} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
+                            <CircleProgress percentage={focus} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
                         </div>
                         <p className="ml-2 flex-1" style={{ color: '#8a8a8e' }}>Focus</p>
-                        <p className="text-xs">+35%</p>
+                        <p className="text-xs"></p>
                     </div>
 
 
                     <div className="flex flex-row items-center  px-4 bg-white text-gray-400 rounded-2xl h-20">
                         <div className="bg-white rounded-full">
-                            <CircleProgress percentage={32} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
+                            {focus === 0 ? <CircleProgress percentage={0} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
+                                :
+                                <CircleProgress percentage={66} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
+                            }
+
                         </div>
                         <p className="ml-2 flex-1" style={{ color: '#8a8a8e' }}>Interest</p>
-                        <p className="text-xs">+35%</p>
+                        <p className="text-xs"></p>
                     </div>
 
 
                     <div className="flex flex-row items-center  px-4 bg-white text-gray-400 rounded-2xl h-20">
                         <div className="bg-white rounded-full">
-                            <CircleProgress percentage={32} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
+                            <CircleProgress percentage={participation} strokeWidth={8} primaryColor={["#898BFA", "#54C4FE"]} secondaryColor="#f0f0f0" strokeWidth={7} width={90} />
                         </div>
                         <p className="ml-2 flex-1" style={{ color: '#8a8a8e' }}>Participation</p>
-                        <p className="text-xs">+35%</p>
+                        <p className="text-xs"></p>
 
 
                     </div>
 
 
 
-                    <div className="">
-
-                    </div>
 
                 </div>
 
+
+
+                <div className={` rounded-2xl px-5 py-5 border border-gray-300 ${showModal ? 'opacity-0' : 'opacity-100'}`} style={{ backgroundColor: '#b9efff' }}>
+                    <div className="flex flex-row items-center justify-between">
+                        <p className="text-base font-muller">Heart rate</p>
+                    </div>
+
+                    <div className="flex flex-row justify-between items-center">
+                        <img src={gif} alt="" className="w-1/2" />
+                        <p className="text-3xl font-muller text-red-500">{heartBeat}</p>
+                    </div>
+                </div>
 
 
             </div >
